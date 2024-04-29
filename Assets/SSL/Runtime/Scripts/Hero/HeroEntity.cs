@@ -10,6 +10,12 @@ public class HeroEntity : MonoBehaviour
     private float _horizontalSpeed = 0f;
     private float _moveDirX = 0f;
 
+    [Header("Dash")]
+    [SerializeField] private float _DashSpeed = 40f;
+    [SerializeField] private float _DashDuration = 0.1f;
+    private bool _isDashing = false;
+    private float _dashTimer = 0f;
+
     [Header("Orientation")]
     [SerializeField] private Transform _orientVisualRoot;
     private float _orientX = 1f;
@@ -34,6 +40,10 @@ public class HeroEntity : MonoBehaviour
             _ChangeOrientFromHorizontalMovement();
         }
         _ApplyHorizontalSpeed();
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            _Dash();
+        }
     }
 
     private void _ChangeOrientFromHorizontalMovement()
@@ -65,7 +75,7 @@ public class HeroEntity : MonoBehaviour
     private void _Accelerate()
     {
         _horizontalSpeed += _movementsSettings.acceleration * Time.fixedDeltaTime;
-        if (_horizontalSpeed > _movementsSettings.maxSpeed)
+        if (_horizontalSpeed > _movementsSettings.maxSpeed && !_isDashing)
         {
             _horizontalSpeed = _movementsSettings.maxSpeed;
         }
@@ -98,6 +108,7 @@ public class HeroEntity : MonoBehaviour
     private void Update()
     {
         _UpdateOrientVisual();
+        _UpdateDash();   
     }
 
     private void _UpdateOrientVisual()
@@ -107,6 +118,27 @@ public class HeroEntity : MonoBehaviour
         Vector3 newScale = _orientVisualRoot.localScale;
         newScale.x = _orientX;
         _orientVisualRoot.localScale = newScale;
+    }
+
+    private void _Dash()
+    {
+        _horizontalSpeed = _DashSpeed;
+        _dashTimer = _DashDuration;
+        _isDashing = true;
+    }
+
+    private void _UpdateDash()
+    {
+        if (!_isDashing) return;
+        if (_isDashing)
+        {
+            _dashTimer -= Time.fixedDeltaTime;
+            if (_dashTimer <= 0f)
+            {
+                _isDashing = false;
+                _horizontalSpeed = 0f;
+            }
+        }
     }
 
     private void OnGUI()

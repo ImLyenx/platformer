@@ -27,11 +27,11 @@ public class HeroController : MonoBehaviour
         float inputMoveX = 0f;
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.Q))
         {
-            inputMoveX = -1f;
+            inputMoveX -= 1f;
         }
         if (Input.GetKey(KeyCode.D))
         {
-            inputMoveX = 1f;
+            inputMoveX += 1f;
         }
         return inputMoveX;
     }
