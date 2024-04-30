@@ -48,10 +48,10 @@ public class HeroEntity : MonoBehaviour
 
     [Header("Dash")]
     [SerializeField]
-    private float _DashSpeed = 40f;
+    private HeroDashSettings _groundDashSettings;
 
     [SerializeField]
-    private float _DashDuration = 0.1f;
+    private HeroDashSettings _airDashSettings;
     private bool _isDashing = false;
     private float _dashTimer = 0f;
 
@@ -83,6 +83,7 @@ public class HeroEntity : MonoBehaviour
         _ApplyGroundDetection();
 
         HeroHorizontalMovementsSettings settings = _GetCurrentHorizontalMovementsSettings();
+        HeroDashSettings dashSettings = _GetCurrentDashSettings();
         if (_AreOrientAndMovementOpposite())
         {
             _TurnBack(settings);
@@ -114,7 +115,7 @@ public class HeroEntity : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.F))
         {
-            _Dash();
+            _Dash(dashSettings);
         }
     }
 
@@ -123,6 +124,11 @@ public class HeroEntity : MonoBehaviour
         return IsTouchingGround
             ? _groundHorizontalMovementsSettings
             : _airHorizontalMovementsSettings;
+    }
+
+    private HeroDashSettings _GetCurrentDashSettings()
+    {
+        return IsTouchingGround ? _groundDashSettings : _airDashSettings;
     }
 
     private void _ChangeOrientFromHorizontalMovement()
@@ -202,10 +208,10 @@ public class HeroEntity : MonoBehaviour
         _orientVisualRoot.localScale = newScale;
     }
 
-    private void _Dash()
+    private void _Dash(HeroDashSettings settings)
     {
-        _horizontalSpeed = _DashSpeed;
-        _dashTimer = _DashDuration;
+        _horizontalSpeed = settings.dashSpeed;
+        _dashTimer = settings.dashDuration;
         _isDashing = true;
     }
 
@@ -226,18 +232,34 @@ public class HeroEntity : MonoBehaviour
 
     private void _ApplyFallGravity(HeroFallSettings settings)
     {
-        _verticalSpeed -= settings.fallGravity * Time.fixedDeltaTime;
-        if (_verticalSpeed < -settings.maxFallSpeed)
+        if (!_isDashing)
         {
-            _verticalSpeed = -settings.maxFallSpeed;
+            _verticalSpeed -= settings.fallGravity * Time.fixedDeltaTime;
+            if (_verticalSpeed < -settings.maxFallSpeed)
+            {
+                _verticalSpeed = -settings.maxFallSpeed;
+            }
+        }
+        else
+        {
+            _verticalSpeed = 0f;
         }
     }
 
     private void _ApplyVerticalSpeed()
     {
-        Vector2 velocity = _rigidbody.velocity;
-        velocity.y = _verticalSpeed;
-        _rigidbody.velocity = velocity;
+        if (_isDashing)
+        {
+            Vector2 velocity = _rigidbody.velocity;
+            velocity.y = 0f;
+            _rigidbody.velocity = velocity;
+        }
+        else
+        {
+            Vector2 velocity = _rigidbody.velocity;
+            velocity.y = _verticalSpeed;
+            _rigidbody.velocity = velocity;
+        }
     }
 
     private void _ApplyGroundDetection()
