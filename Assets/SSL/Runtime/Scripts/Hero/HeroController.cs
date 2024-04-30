@@ -3,14 +3,17 @@ using UnityEngine;
 public class HeroController : MonoBehaviour
 {
     [Header("Entity")]
-    [SerializeField] private HeroEntity _entity;
+    [SerializeField]
+    private HeroEntity _entity;
 
     [Header("Debug")]
-    [SerializeField] private bool _guiDebug = false;
+    [SerializeField]
+    private bool _guiDebug = false;
 
     private void OnGUI()
     {
-        if (!_guiDebug) return;
+        if (!_guiDebug)
+            return;
 
         GUILayout.BeginVertical(GUI.skin.box);
         GUILayout.Label(gameObject.name);
@@ -20,6 +23,14 @@ public class HeroController : MonoBehaviour
     private void Update()
     {
         _entity.SetMoveDirX(GetInputMoveX());
+
+        if (_GetInputDownJump())
+        {
+            if (_entity.IsTouchingGround && !_entity.IsJumping)
+            {
+                _entity.JumpStart();
+            }
+        }
     }
 
     private float GetInputMoveX()
@@ -34,5 +45,10 @@ public class HeroController : MonoBehaviour
             inputMoveX += 1f;
         }
         return inputMoveX;
+    }
+
+    private bool _GetInputDownJump()
+    {
+        return Input.GetKeyDown(KeyCode.Space);
     }
 }

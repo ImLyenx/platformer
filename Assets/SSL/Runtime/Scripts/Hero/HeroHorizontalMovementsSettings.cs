@@ -1,7 +1,6 @@
 using System;
 
 [Serializable]
-
 public class HeroHorizontalMovementsSettings
 {
     public float acceleration = 20f;

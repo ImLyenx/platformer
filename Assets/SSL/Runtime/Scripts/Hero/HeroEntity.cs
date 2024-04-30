@@ -3,41 +3,76 @@ using UnityEngine;
 public class HeroEntity : MonoBehaviour
 {
     [Header("Physics")]
-    [SerializeField] private Rigidbody2D _rigidbody;
+    [SerializeField]
+    private Rigidbody2D _rigidbody;
 
     [Header("Vertical Movements")]
     private float _verticalSpeed = 0f;
 
+    [Header("Fall")]
+    [SerializeField]
+    private HeroFallSettings _fallSettings;
+
     [Header("Jump")]
-    [SerializeField] private HeroFallSettings _fallSettings;
+    [SerializeField]
+    private HeroJumpSettings _jumpSettings;
+
+    [SerializeField]
+    private HeroFallSettings _jumpFallSettings;
+
+    enum JumpState
+    {
+        NotJumping,
+        JumpImpulsion,
+        Falling
+    }
+
+    private JumpState _jumpState = JumpState.NotJumping;
+    private float _jumpTimer = 0f;
 
     [Header("Ground")]
-    [SerializeField] private GroundDetector _groundDetector;
-    public bool IsTouchingGround { get; private set;} = false;
+    [SerializeField]
+    private GroundDetector _groundDetector;
+    public bool IsTouchingGround { get; private set; } = false;
 
     [Header("Horizontal Movements")]
-    [SerializeField] private HeroHorizontalMovementsSettings _movementsSettings;
+    [SerializeField]
+    private HeroHorizontalMovementsSettings _movementsSettings;
     private float _horizontalSpeed = 0f;
     private float _moveDirX = 0f;
 
     [Header("Dash")]
-    [SerializeField] private float _DashSpeed = 40f;
-    [SerializeField] private float _DashDuration = 0.1f;
+    [SerializeField]
+    private float _DashSpeed = 40f;
+
+    [SerializeField]
+    private float _DashDuration = 0.1f;
     private bool _isDashing = false;
     private float _dashTimer = 0f;
 
     [Header("Orientation")]
-    [SerializeField] private Transform _orientVisualRoot;
+    [SerializeField]
+    private Transform _orientVisualRoot;
     private float _orientX = 1f;
 
     [Header("Debug")]
-    [SerializeField] private bool _guiDebug = false;
+    [SerializeField]
+    private bool _guiDebug = false;
 
     public void SetMoveDirX(float dirX)
     {
         _moveDirX = dirX;
     }
 
+    public void JumpStart()
+    {
+        _jumpState = JumpState.JumpImpulsion;
+        _jumpTimer = 0f;
+    }
+
+    public bool IsJumping => _jumpState != JumpState.NotJumping;
+
+    // MARK: FixedUpdate
     private void FixedUpdate()
     {
         _ApplyGroundDetection();
@@ -51,28 +86,36 @@ public class HeroEntity : MonoBehaviour
             _UpdateHorizontalSpeed();
             _ChangeOrientFromHorizontalMovement();
         }
+
+        if (IsJumping)
+        {
+            UpdateJump();
+        }
+        else
+        {
+            if (!IsTouchingGround)
+            {
+                _ApplyFallGravity(_fallSettings);
+            }
+            else
+            {
+                _ResetVerticalSpeed();
+            }
+        }
+
         _ApplyHorizontalSpeed();
+        _ApplyVerticalSpeed();
+
         if (Input.GetKeyDown(KeyCode.F))
         {
             _Dash();
         }
-        
-        if (!IsTouchingGround)
-        {
-            _ApplyFallGravity();
-        }
-        else
-        {
-            _ResetVerticalSpeed();
-        }
-
-        _ApplyFallGravity();
-        _ApplyVerticalSpeed();
     }
 
     private void _ChangeOrientFromHorizontalMovement()
     {
-        if (_moveDirX == 0f) return;
+        if (_moveDirX == 0f)
+            return;
 
         _orientX = Mathf.Sign(_moveDirX);
     }
@@ -128,16 +171,18 @@ public class HeroEntity : MonoBehaviour
     {
         return _moveDirX * _orientX < 0f;
     }
-    
+
+    // MARK: Update
     private void Update()
     {
         _UpdateOrientVisual();
-        _UpdateDash();   
+        _UpdateDash();
     }
 
     private void _UpdateOrientVisual()
     {
-        if (_moveDirX == 0f) return;
+        if (_moveDirX == 0f)
+            return;
 
         Vector3 newScale = _orientVisualRoot.localScale;
         newScale.x = _orientX;
@@ -153,7 +198,8 @@ public class HeroEntity : MonoBehaviour
 
     private void _UpdateDash()
     {
-        if (!_isDashing) return;
+        if (!_isDashing)
+            return;
         if (_isDashing)
         {
             _dashTimer -= Time.fixedDeltaTime;
@@ -165,12 +211,12 @@ public class HeroEntity : MonoBehaviour
         }
     }
 
-    private void _ApplyFallGravity()
+    private void _ApplyFallGravity(HeroFallSettings settings)
     {
-        _verticalSpeed -= _fallSettings.gravity * Time.fixedDeltaTime;
-        if (_verticalSpeed < -_fallSettings.maxFallSpeed)
+        _verticalSpeed -= settings.fallGravity * Time.fixedDeltaTime;
+        if (_verticalSpeed < -settings.maxFallSpeed)
         {
-            _verticalSpeed = -_fallSettings.maxFallSpeed;
+            _verticalSpeed = -settings.maxFallSpeed;
         }
     }
 
@@ -191,14 +237,55 @@ public class HeroEntity : MonoBehaviour
         _verticalSpeed = 0f;
     }
 
+    private void _UpdateJumpStateImpulsion()
+    {
+        _jumpTimer += Time.fixedDeltaTime;
+        if (_jumpTimer < _jumpSettings.jumpMaxDuration)
+        {
+            _verticalSpeed = _jumpSettings.jumpSpeed;
+        }
+        else
+        {
+            _jumpState = JumpState.Falling;
+        }
+    }
+
+    private void _UpdateJumpStateFalling()
+    {
+        if (!IsTouchingGround)
+        {
+            _ApplyFallGravity(_jumpFallSettings);
+        }
+        else
+        {
+            _ResetVerticalSpeed();
+            _jumpState = JumpState.NotJumping;
+        }
+    }
+
+    private void UpdateJump()
+    {
+        switch (_jumpState)
+        {
+            case JumpState.JumpImpulsion:
+                _UpdateJumpStateImpulsion();
+                break;
+            case JumpState.Falling:
+                _UpdateJumpStateFalling();
+                break;
+        }
+    }
+
     private void OnGUI()
     {
-        if (!_guiDebug) return;
+        if (!_guiDebug)
+            return;
 
         GUILayout.BeginVertical(GUI.skin.box);
         GUILayout.Label(gameObject.name);
         GUILayout.Label($"MoveDirX = {_moveDirX}");
         GUILayout.Label($"OrientX = {_orientX}");
+        GUILayout.Label($"Jump State = {_jumpState}");
         if (IsTouchingGround)
         {
             GUILayout.Label("On Ground");
