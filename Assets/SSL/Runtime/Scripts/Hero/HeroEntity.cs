@@ -11,6 +11,10 @@ public class HeroEntity : MonoBehaviour
     [Header("Jump")]
     [SerializeField] private HeroFallSettings _fallSettings;
 
+    [Header("Ground")]
+    [SerializeField] private GroundDetector _groundDetector;
+    public bool IsTouchingGround { get; private set;} = false;
+
     [Header("Horizontal Movements")]
     [SerializeField] private HeroHorizontalMovementsSettings _movementsSettings;
     private float _horizontalSpeed = 0f;
@@ -36,6 +40,8 @@ public class HeroEntity : MonoBehaviour
 
     private void FixedUpdate()
     {
+        _ApplyGroundDetection();
+
         if (_AreOrientAndMovementOpposite())
         {
             _TurnBack();
@@ -49,6 +55,15 @@ public class HeroEntity : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F))
         {
             _Dash();
+        }
+        
+        if (!IsTouchingGround)
+        {
+            _ApplyFallGravity();
+        }
+        else
+        {
+            _ResetVerticalSpeed();
         }
 
         _ApplyFallGravity();
@@ -166,6 +181,16 @@ public class HeroEntity : MonoBehaviour
         _rigidbody.velocity = velocity;
     }
 
+    private void _ApplyGroundDetection()
+    {
+        IsTouchingGround = _groundDetector.DetectGroundNearby();
+    }
+
+    private void _ResetVerticalSpeed()
+    {
+        _verticalSpeed = 0f;
+    }
+
     private void OnGUI()
     {
         if (!_guiDebug) return;
@@ -174,6 +199,14 @@ public class HeroEntity : MonoBehaviour
         GUILayout.Label(gameObject.name);
         GUILayout.Label($"MoveDirX = {_moveDirX}");
         GUILayout.Label($"OrientX = {_orientX}");
+        if (IsTouchingGround)
+        {
+            GUILayout.Label("On Ground");
+        }
+        else
+        {
+            GUILayout.Label("In Air");
+        }
         GUILayout.Label($"Horizontal Speed = {_horizontalSpeed}");
         GUILayout.Label($"Vertical Speed = {_verticalSpeed}");
         GUILayout.EndVertical();
