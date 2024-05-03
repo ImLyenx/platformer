@@ -3,6 +3,8 @@ using UnityEngine.Serialization;
 
 public class HeroEntity : MonoBehaviour
 {
+    private CameraFollowable _cameraFollowable;
+
     [Header("Physics")]
     [SerializeField]
     private Rigidbody2D _rigidbody;
@@ -81,6 +83,7 @@ public class HeroEntity : MonoBehaviour
     private void FixedUpdate()
     {
         _ApplyGroundDetection();
+        _UpdateCameraFollowPosition();
 
         HeroHorizontalMovementsSettings settings = _GetCurrentHorizontalMovementsSettings();
         HeroDashSettings dashSettings = _GetCurrentDashSettings();
@@ -318,6 +321,22 @@ public class HeroEntity : MonoBehaviour
 
     public bool IsJumpImpulsing => _jumpState == JumpState.JumpImpulsion;
     public bool IsJumpMinDurationReached => _jumpTimer >= _jumpSettings.jumpMinDuration;
+
+    private void _UpdateCameraFollowPosition()
+    {
+        _cameraFollowable.FollowPositionX = _rigidbody.position.x;
+        if (IsTouchingGround && !IsJumping)
+        {
+            _cameraFollowable.FollowPositionY = _rigidbody.position.y;
+        }
+    }
+
+    private void Awake()
+    {
+        _cameraFollowable = GetComponent<CameraFollowable>();
+        _cameraFollowable.FollowPositionX = _rigidbody.position.x;
+        _cameraFollowable.FollowPositionY = _rigidbody.position.y;
+    }
 
     private void OnGUI()
     {

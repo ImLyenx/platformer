@@ -14,11 +14,11 @@ public class CameraProfile : MonoBehaviour
 
     [Header("Follow")]
     [SerializeField]
-    private Transform _targetToFollow = null;
+    private CameraFollowable _targetToFollow = null;
 
     public CameraProfileType ProfileType => _profileType;
 
-    public Transform TargetToFollow => _targetToFollow;
+    public CameraFollowable TargetToFollow => _targetToFollow;
 
     private Camera _camera;
 
