@@ -45,6 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _entity: {fileID: 0}
-  _jumpBufferDuration: 0.15
+  _jumpBufferDuration: 0.2
   _coyoteTimeDuration: 0.2
-  _guiDebug: 0
+  _guiDebug: 1
