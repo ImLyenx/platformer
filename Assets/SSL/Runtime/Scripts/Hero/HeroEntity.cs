@@ -86,7 +86,6 @@ public class HeroEntity : MonoBehaviour
         _UpdateCameraFollowPosition();
 
         HeroHorizontalMovementsSettings settings = _GetCurrentHorizontalMovementsSettings();
-        HeroDashSettings dashSettings = _GetCurrentDashSettings();
         if (_AreOrientAndMovementOpposite())
         {
             _TurnBack(settings);
@@ -115,11 +114,6 @@ public class HeroEntity : MonoBehaviour
 
         _ApplyHorizontalSpeed();
         _ApplyVerticalSpeed();
-
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            _Dash(dashSettings);
-        }
     }
 
     private HeroHorizontalMovementsSettings _GetCurrentHorizontalMovementsSettings()
@@ -197,6 +191,11 @@ public class HeroEntity : MonoBehaviour
     // MARK: Update
     private void Update()
     {
+        HeroDashSettings dashSettings = _GetCurrentDashSettings();
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            _Dash(dashSettings);
+        }
         _UpdateOrientVisual();
         _UpdateDash();
     }
@@ -220,8 +219,6 @@ public class HeroEntity : MonoBehaviour
 
     private void _UpdateDash()
     {
-        if (!_isDashing)
-            return;
         if (_isDashing)
         {
             _dashTimer -= Time.fixedDeltaTime;
@@ -355,6 +352,14 @@ public class HeroEntity : MonoBehaviour
         else
         {
             GUILayout.Label("In Air");
+        }
+        if (_isDashing)
+        {
+            GUILayout.Label("Dashing");
+        }
+        else
+        {
+            GUILayout.Label("Not Dashing");
         }
         GUILayout.Label($"Horizontal Speed = {_horizontalSpeed}");
         GUILayout.Label($"Vertical Speed = {_verticalSpeed}");
