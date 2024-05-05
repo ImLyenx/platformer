@@ -114,6 +114,8 @@ public class HeroEntity : MonoBehaviour
 
         _ApplyHorizontalSpeed();
         _ApplyVerticalSpeed();
+
+        _UpdateDash();
     }
 
     private HeroHorizontalMovementsSettings _GetCurrentHorizontalMovementsSettings()
@@ -197,7 +199,6 @@ public class HeroEntity : MonoBehaviour
             _Dash(dashSettings);
         }
         _UpdateOrientVisual();
-        _UpdateDash();
     }
 
     private void _UpdateOrientVisual()
