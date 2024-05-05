@@ -57,6 +57,7 @@ public class HeroEntity : MonoBehaviour
     private float _horizontalSpeed = 0f;
     private float _moveDirX = 0f;
 
+
     [Header("Dash")]
     [SerializeField]
     private HeroDashSettings _groundDashSettings;
@@ -148,6 +149,7 @@ public class HeroEntity : MonoBehaviour
             return;
 
         _orientX = Mathf.Sign(_moveDirX);
+        _cameraFollowable.OrientX = _orientX;
     }
 
     private void _ApplyHorizontalSpeed()

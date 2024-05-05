@@ -15,6 +15,12 @@ public class CameraProfile : MonoBehaviour
     [Header("Follow")]
     [SerializeField]
     private CameraFollowable _targetToFollow = null;
+    [SerializeField]
+    private float _followOffsetX = 0f;
+    [SerializeField]
+    private float _followOffsetY = 0f;
+    [SerializeField]
+    private float _followOffsetDamping = 1.5f;
 
     [Header("Damping")]
     [SerializeField]
@@ -51,6 +57,12 @@ public class CameraProfile : MonoBehaviour
     public CameraProfileType ProfileType => _profileType;
 
     public CameraFollowable TargetToFollow => _targetToFollow;
+
+    public float FollowOffsetX => _followOffsetX;
+
+    public float FollowOffsetY => _followOffsetY;
+
+    public float FollowOffsetDamping => _followOffsetDamping;
 
     private Camera _camera;
 
