@@ -18,7 +18,10 @@ public class HeroEntity : MonoBehaviour
 
     [Header("Jump")]
     [SerializeField]
-    private HeroJumpSettings _jumpSettings;
+    private HeroJumpSettings[] _jumpSettings;
+    public int MultiJumpCountMax => _jumpSettings.Length;
+
+    private int _multiJumpCount = 0;
 
     [SerializeField]
     private HeroFallSettings _jumpFallSettings;
@@ -77,8 +80,9 @@ public class HeroEntity : MonoBehaviour
         _moveDirX = dirX;
     }
 
-    public void JumpStart()
+    public void JumpStart(int multiJumpIndex)
     {
+        _multiJumpCount = multiJumpIndex;
         _jumpState = JumpState.JumpImpulsion;
         _jumpTimer = 0f;
     }
@@ -304,9 +308,9 @@ public class HeroEntity : MonoBehaviour
     private void _UpdateJumpStateImpulsion()
     {
         _jumpTimer += Time.fixedDeltaTime;
-        if (_jumpTimer < _jumpSettings.jumpMaxDuration)
+        if (_jumpTimer < _jumpSettings[_multiJumpCount].jumpMaxDuration)
         {
-            _verticalSpeed = _jumpSettings.jumpSpeed;
+            _verticalSpeed = _jumpSettings[_multiJumpCount].jumpSpeed;
         }
         else
         {
@@ -346,7 +350,7 @@ public class HeroEntity : MonoBehaviour
     }
 
     public bool IsJumpImpulsing => _jumpState == JumpState.JumpImpulsion;
-    public bool IsJumpMinDurationReached => _jumpTimer >= _jumpSettings.jumpMinDuration;
+    public bool IsJumpMinDurationReached => _jumpTimer >= _jumpSettings[_multiJumpCount].jumpMinDuration;
 
     private void _UpdateCameraFollowPosition()
     {
@@ -374,6 +378,7 @@ public class HeroEntity : MonoBehaviour
         GUILayout.Label($"MoveDirX = {_moveDirX}");
         GUILayout.Label($"OrientX = {_orientX}");
         GUILayout.Label($"Jump State = {_jumpState}");
+        GUILayout.Label($"MultiJumpCount = {_multiJumpCount}");
         if (IsTouchingGround)
         {
             GUILayout.Label("On Ground");

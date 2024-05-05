@@ -7,11 +7,6 @@ public class HeroController : MonoBehaviour
     private HeroEntity _entity;
     private bool _entityWasTouchingGround = false;
 
-    [Header("Jump Buffer")]
-    [SerializeField]
-    private float _jumpBufferDuration = 0.2f;
-    private float _jumpBufferTimer = 0f;
-
     [Header("Coyote Time")]
     [SerializeField]
     private float _coyoteTimeDuration = 0.2f;
@@ -21,6 +16,8 @@ public class HeroController : MonoBehaviour
     [SerializeField]
     private bool _guiDebug = false;
 
+    private int _multiJumpCount = 0;
+
     private void OnGUI()
     {
         if (!_guiDebug)
@@ -28,19 +25,12 @@ public class HeroController : MonoBehaviour
 
         GUILayout.BeginVertical(GUI.skin.box);
         GUILayout.Label(gameObject.name);
-        GUILayout.Label($"Jump Buffer Timer = {_jumpBufferTimer}");
         GUILayout.Label($"Coyote Time Countdown = {_coyoteTimeCountdown}");
         GUILayout.EndVertical();
     }
 
-    private void Start()
-    {
-        _CancelJumpBuffer();
-    }
-
     private void Update()
     {
-        _UpdateJumpBuffer();
 
         _entity.SetMoveDirX(GetInputMoveX());
 
@@ -55,22 +45,20 @@ public class HeroController : MonoBehaviour
 
         if (_GetInputDownJump())
         {
-            if ((_entity.IsTouchingGround || _IsCoyoteTimeActive()) && !_entity.IsJumping)
+            if (_entity.IsTouchingGround || _IsCoyoteTimeActive())
             {
-                _entity.JumpStart();
+                _entity.JumpStart(0);
             }
-            else
+            else if (!_entity.IsJumpImpulsing && _multiJumpCount < _entity.MultiJumpCountMax - 1)
             {
-                _ResetJumpBuffer();
+                _multiJumpCount++;
+                _entity.JumpStart(_multiJumpCount);
             }
         }
 
-        if (IsJumpBufferActive())
+        if (_entityWasTouchingGround)
         {
-            if ((_entity.IsTouchingGround || _IsCoyoteTimeActive()) && !_entity.IsJumping)
-            {
-                _entity.JumpStart();
-            }
+            _multiJumpCount = 0; 
         }
 
         if (_entity.IsJumpImpulsing)
@@ -106,28 +94,6 @@ public class HeroController : MonoBehaviour
     private bool _GetInputJump()
     {
         return Input.GetKey(KeyCode.Space);
-    }
-
-    private void _ResetJumpBuffer()
-    {
-        _jumpBufferTimer = 0f;
-    }
-
-    private bool IsJumpBufferActive()
-    {
-        return _jumpBufferTimer < _jumpBufferDuration;
-    }
-
-    private void _UpdateJumpBuffer()
-    {
-        if (!IsJumpBufferActive())
-            return;
-        _jumpBufferTimer += Time.deltaTime;
-    }
-
-    private void _CancelJumpBuffer()
-    {
-        _jumpBufferTimer = _jumpBufferDuration;
     }
 
     private void _UpdateCoyoteTime()
