@@ -36,7 +36,13 @@ public class HeroEntity : MonoBehaviour
     [Header("Ground")]
     [SerializeField]
     private GroundDetector _groundDetector;
+    [SerializeField]
+    private LeftWallDetector _leftWallDetector;
+    [SerializeField]
+    private RightWallDetector _rightWallDetector;
     public bool IsTouchingGround { get; private set; } = false;
+    public bool IsTouchingLeftWall { get; private set; } = false;
+    public bool IsTouchingRightWall { get; private set; } = false;
 
     [Header("Horizontal Movements")]
     [FormerlySerializedAs("_movementsSettings")]
@@ -83,6 +89,8 @@ public class HeroEntity : MonoBehaviour
     private void FixedUpdate()
     {
         _ApplyGroundDetection();
+        _ApplyLeftWallDetection();
+        _ApplyRightWallDetection();
         _UpdateCameraFollowPosition();
 
         HeroHorizontalMovementsSettings settings = _GetCurrentHorizontalMovementsSettings();
@@ -142,6 +150,16 @@ public class HeroEntity : MonoBehaviour
     {
         Vector2 velocity = _rigidbody.velocity;
         velocity.x = _horizontalSpeed * _orientX;
+        if (IsTouchingLeftWall && velocity.x < 0f)
+        {
+            velocity.x = 0f;
+            _horizontalSpeed = 0f;
+        }
+        if (IsTouchingRightWall && velocity.x > 0f)
+        {
+            velocity.x = 0f;
+            _horizontalSpeed = 0f;
+        }
         _rigidbody.velocity = velocity;
     }
 
@@ -268,6 +286,16 @@ public class HeroEntity : MonoBehaviour
         IsTouchingGround = _groundDetector.DetectGroundNearby();
     }
 
+    private void _ApplyLeftWallDetection()
+    {
+        IsTouchingLeftWall = _leftWallDetector.DetectLeftWallNearby();
+    }
+
+    private void _ApplyRightWallDetection()
+    {
+        IsTouchingRightWall = _rightWallDetector.DetectRightWallNearby();
+    }
+
     private void _ResetVerticalSpeed()
     {
         _verticalSpeed = 0f;
@@ -353,6 +381,22 @@ public class HeroEntity : MonoBehaviour
         else
         {
             GUILayout.Label("In Air");
+        }
+        if (IsTouchingLeftWall)
+        {
+            GUILayout.Label("Touching Left Wall");
+        }
+        else
+        {
+            GUILayout.Label("Not Touching Left Wall");
+        }
+        if (IsTouchingRightWall)
+        {
+            GUILayout.Label("Touching Right Wall");
+        }
+        else
+        {
+            GUILayout.Label("Not Touching Right Wall");
         }
         if (_isDashing)
         {
